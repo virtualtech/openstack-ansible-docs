@@ -1,0 +1,43 @@
+auto lo
+iface lo inet loopback
+
+auto em1
+iface em1 inet static
+  address 192.168.0.10
+  netmask 255.255.255.0
+  gateway 192.168.0.1
+  dns-nameservers 8.8.8.8
+
+iface em1.10 inet manual
+  vlan-raw-device em1
+
+auto em2
+iface em2 inet manual
+
+iface em2.30 inet manual
+  vlan-raw-device em2
+
+auto br-mgmt
+iface br-mgmt inet static
+  bridge_stp off
+  bridge_waitport 0
+  bridge_fd 0
+  bridge_ports em1.10
+  address 172.29.236.10
+  netmask 255.255.252.0
+
+auto br-vlan
+iface br-vlan inet manual
+  bridge_stp off
+  bridge_waitport 0
+  bridge_fd 0
+  bridge_ports em2
+
+auto br-vxlan
+iface br-vxlan inet static
+  bridge_stp off
+  bridge_waitport 0
+  bridge_fd 0
+  bridge_ports em2.30
+  address 172.29.240.10
+  netmask 255.255.252.0

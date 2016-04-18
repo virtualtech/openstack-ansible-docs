@@ -1,0 +1,107 @@
+---
+cidr_networks:
+  management: 172.29.236.0/22
+  tunnel: 172.29.240.0/22
+
+used_ips:
+  - 172.29.236.1,172.29.236.31
+  - 172.29.240.1,172.29.240.31
+
+global_overrides:
+  internal_lb_vip_address: 172.29.236.10
+  external_lb_vip_address: 192.168.0.10
+  lb_name: haproxy
+  tunnel_bridge: "br-vxlan"
+  management_bridge: "br-mgmt"
+  provider_networks:
+    - network:
+        group_binds:
+          - all_containers
+          - hosts
+        type: "raw"
+        container_bridge: "br-mgmt"
+        container_interface: "eth1"
+        container_type: "veth"
+        ip_from_q: "management"
+        is_container_address: true
+        is_ssh_address: true
+    - network:
+        group_binds:
+          - neutron_linuxbridge_agent
+        container_bridge: "br-vxlan"
+        container_type: "veth"
+        container_interface: "eth10"
+        ip_from_q: "tunnel"
+        type: "vxlan"
+        range: "1:1000"
+        net_name: "vxlan"
+    - network:
+        group_binds:
+          - neutron_linuxbridge_agent
+        container_bridge: "br-vlan"
+        container_type: "veth"
+        container_interface: "eth11"
+        type: "vlan"
+        range: "1:1"
+        net_name: "vlan"
+    - network:
+        group_binds:
+          - neutron_linuxbridge_agent
+        container_bridge: "br-vlan"
+        container_type: "veth"
+        container_interface: "eth12"
+        host_bind_override: "em2"
+        type: "flat"
+        net_name: "flat"
+
+shared-infra_hosts:
+  controller-01:
+    affinity:
+      galera_container: 3
+      rabbit_mq_container: 3
+    ip: 172.29.236.10
+
+os-infra_hosts:
+  controller-01:
+    affinity:
+      horizon_container: 2
+    ip: 172.29.236.10
+
+storage-infra_hosts:
+  controller-01:
+    ip: 172.29.236.10
+
+identity_hosts:
+  controller-01:
+    affinity:
+      keystone_container: 2
+    ip: 172.29.236.10
+
+compute_hosts:
+  compute-01:
+    ip: 172.29.236.11
+
+storage_hosts:
+  controller-01:
+    ip: 172.29.236.10 
+    container_vars:
+      cinder_backends:
+        limit_container_types: cinder_volume
+        lvm:
+          volume_backend_name: LVM_iSCSI
+          volume_driver: cinder.volume.drivers.lvm.LVMVolumeDriver
+          volume_group: cinder-volumes
+
+network_hosts:
+  controller-01:
+    ip: 172.29.236.10
+
+repo-infra_hosts:
+  controller-01:
+    affinity:
+      repo_container: 2
+    ip: 172.29.236.10
+
+haproxy_hosts:
+  controller-01:
+    ip: 172.29.236.10
